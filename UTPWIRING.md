@@ -5,10 +5,10 @@ The connection between the controller unit of the Edt-Trak and the gametrak itse
 UTP pin diagram
 
 ````
-1: Green /		- red 1 v
+1: Green /		- red 1
 2: Green		- red 2 
-3: Orange /		- orange 1 v
-4: blue 		- 5v v
+3: Orange /		- orange 1
+4: blue 		- 5v
 5: blue /		- yellow 1 
 6: Orange		- orange 2
 7: brown /		- yellow 2
