@@ -47,7 +47,7 @@ void serialEvent (Serial myPort) {
   }
   
   // Send over OSC to whoever is listening
-  OscMessage myMessage = new OscMessage("/0/Trak");
+  OscMessage myMessage = new OscMessage("/Trak");
   myMessage.add(values);
   oscP5.send(myMessage, myRemoteLocation); 
 }
