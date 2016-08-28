@@ -7,6 +7,10 @@
 #define Right_Y A4 // Orange - orange right
 #define Right_Z A3 // Green - red right
 
+#define P_GND 5
+#define P_RING 6
+#define P_TIP 7
+
 // Feedback LED
 #define LED 13
 
@@ -19,6 +23,13 @@ int Right_X_Val = 0;
 int Right_Y_Val = 0;
 int Right_Z_Val = 0;
 
+int p_ring;
+int p_tip;
+int button_pressed = 0;
+
+long last_read = 0;
+int repeat_time = 300;
+
 // Minimal value for Z axis, otherwise send 0's or no values at all (if GameTrak is in resting position, don't send anything)
 int gate = 100;
 bool active = false;
@@ -27,13 +38,51 @@ bool active = false;
 String divider = "-";
 String endPoint = ":";
 
+// Identifiers
+String trak_id = "T";
+String pedal_id = "P";
+
 // Start serial as fast as we can
 void setup() {
   Serial.begin(1000000);
   pinMode(LED, OUTPUT);
+  // Set PULLUP resistors on ring and tip
+  pinMode(P_RING, INPUT_PULLUP);
+  pinMode(P_TIP, INPUT_PULLUP);
+  // Set to GND
+  pinMode(P_GND, OUTPUT);
+  digitalWrite(P_GND, LOW);
 }
 
 void loop() {
+  // Pedal!
+  // Only if a button was not pressed yet, we want to check and maybe send
+  if(button_pressed == 0) {
+    p_ring = digitalRead(P_RING);
+    p_tip = digitalRead(P_TIP);
+    if(p_ring == LOW || p_tip == LOW) {
+      // Remember the time...
+      last_read = millis();
+      // Check which button was pressed
+      if(p_tip == LOW) {
+        button_pressed = 1;
+      }
+      if(p_ring == LOW) {
+        button_pressed = 2;
+      }
+      if(p_ring == LOW && p_tip == LOW) {
+        button_pressed = 3;
+      }
+      Serial.print(pedal_id + divider + button_pressed + endPoint);
+    }
+  } else {
+    // If enough time has passed, we reset button_pressed to 0 so we can start read again
+    if((last_read + repeat_time) < millis()) {
+      button_pressed = 0;
+    }
+  }
+
+  // Trak!
   // Read the values of each pin
   Left_X_Val = analogRead(Left_X);
   Left_Y_Val = 1023 - analogRead(Left_Y);
@@ -60,6 +109,8 @@ void loop() {
     }
     // Print to a line seperated by divider
     Serial.print(
+      trak_id +
+      divider +
       Left_X_Val + 
       divider + 
       Left_Y_Val + 
@@ -76,7 +127,7 @@ void loop() {
   } else {
     if(active) {
       // Send a last 0 0 0 0 0 0 message
-      Serial.print(0 + divider + 0 + divider + 0 + divider + 0 + divider + 0 + divider + 0 + endPoint);
+      Serial.print(trak_id + divider + 0 + divider + 0 + divider + 0 + divider + 0 + divider + 0 + divider + 0 + endPoint);
       active = false;
     }
     // Not sending, LED to LOW
